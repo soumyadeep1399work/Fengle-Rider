@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "owner": "srtatsumi",
+    "name": "Fengle Rider",
+    "slug": "fengle-rider-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#4B18A6",
+    "android": {
+      "package": "com.fengle.rider",
+      "adaptiveIcon": {
+        "backgroundColor": "#4B18A6",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#4B18A6",
+          "image": "./assets/fengle-logo.png",
+          "imageWidth": 120,
+          "resizeMode": "contain"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Fengle Rider uses your location to find nearby deliveries and guide you to pickup/drop points."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/fengle-wordmark.png",
+          "color": "#4B18A6",
+          "defaultChannel": "orders"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5314683b-e44d-44e6-b66c-2fa4c676f862"
+      }
+    }
+  }
+}
