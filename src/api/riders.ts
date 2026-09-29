@@ -10,6 +10,7 @@ function mapProfile(r: any): RiderProfile {
     vehicleNumber: r.vehicle_number ?? null,
     status: r.status,
     walletBalance: Number(r.wallet_balance ?? 0),
+    agreementRequired: Boolean(r.agreementRequired),
   };
 }
 

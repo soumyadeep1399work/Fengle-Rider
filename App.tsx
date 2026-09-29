@@ -22,6 +22,7 @@ import { DeliveryProvider, useDelivery } from './src/context/DeliveryContext';
 import BottomNav, { Tab } from './src/components/BottomNav';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingProfileScreen from './src/screens/OnboardingProfileScreen';
+import AgreementScreen from './src/screens/AgreementScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import EarningsScreen from './src/screens/EarningsScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
@@ -112,13 +113,23 @@ function Shell() {
 }
 
 function ProfileGate() {
-  const { loading, needsOnboarding } = useRiderProfile();
+  const { loading, needsOnboarding, needsAgreement, refresh } = useRiderProfile();
   if (loading) return null;
   if (needsOnboarding) {
     return (
       <View style={styles.root}>
         <StatusBar style="dark" />
         <OnboardingProfileScreen />
+      </View>
+    );
+  }
+  // Checked after onboarding, before deliveries — has no effect until the
+  // backend ships `agreementRequired` (see RiderProfileContext).
+  if (needsAgreement) {
+    return (
+      <View style={styles.root}>
+        <StatusBar style="dark" />
+        <AgreementScreen onAccepted={refresh} />
       </View>
     );
   }

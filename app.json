@@ -51,6 +51,12 @@
           "color": "#4B18A6",
           "defaultChannel": "orders"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Fengle Rider uses the camera to take your verification photo for the rider agreement."
+        }
       ]
     ],
     "extra": {

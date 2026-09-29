@@ -7,6 +7,8 @@ interface RiderProfileContextValue {
   loading: boolean;
   /** Vehicle type is the marker for "has this rider finished onboarding". */
   needsOnboarding: boolean;
+  /** False (fails open) until the backend ships `agreementRequired` on GET /riders/me. */
+  needsAgreement: boolean;
   refresh: () => Promise<void>;
   update: (patch: ProfileUpdate) => Promise<void>;
 }
@@ -36,7 +38,11 @@ export function RiderProfileProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const value: RiderProfileContextValue = {
-    profile, loading, needsOnboarding: !loading && profile != null && !profile.vehicleType, refresh, update,
+    profile, loading,
+    needsOnboarding: !loading && profile != null && !profile.vehicleType,
+    // Checked after onboarding, so a rider with no vehicle set never sees this first.
+    needsAgreement: !loading && profile != null && !!profile.vehicleType && profile.agreementRequired,
+    refresh, update,
   };
 
   return <RiderProfileContext.Provider value={value}>{children}</RiderProfileContext.Provider>;

@@ -46,6 +46,8 @@ export interface RiderProfile {
   vehicleNumber: string | null;
   status: RiderStatus;
   walletBalance: number;
+  /** Undefined until the backend ships this field — see fails-open note in RiderProfileContext. */
+  agreementRequired: boolean;
 }
 
 export interface WalletLedgerEntry {
