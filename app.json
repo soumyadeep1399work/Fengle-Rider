@@ -21,6 +21,10 @@
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -55,7 +59,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Fengle Rider uses the camera to take your verification photo for the rider agreement."
+          "cameraPermission": "Fengle Rider uses the camera to take your verification photo for the rider agreement.",
+          "microphonePermission": false
         }
       ]
     ],

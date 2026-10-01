@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import { useRiderProfile } from '../context/RiderProfileContext';
 import OnboardingProfileScreen from './OnboardingProfileScreen';
 
+const ACCOUNT_DELETION_URL = 'https://fengle.in/data-deletion.html';
 const VEHICLE_LABEL: Record<string, string> = { bike: 'Bike', scooter: 'Scooter', bicycle: 'Cycle', car: 'Car' };
 
 export default function ProfileScreen() {
@@ -23,6 +24,8 @@ export default function ProfileScreen() {
     { label: 'Edit profile', onPress: () => setEditing(true) },
     { label: 'Bank details', onPress: () => Alert.alert('Bank details', 'Coming soon — contact support to update your payout account.') },
     { label: 'Support', onPress: () => Alert.alert('Support', 'Contact your onboarding admin for help.') },
+    // Google Play requires a way to request account deletion from inside the app.
+    { label: 'Delete account', onPress: () => Linking.openURL(ACCOUNT_DELETION_URL).catch(() => {}) },
     { label: 'Log out', color: '#8E3A62', onPress: () => Alert.alert('Log out?', undefined, [{ text: 'Cancel', style: 'cancel' }, { text: 'Log out', style: 'destructive', onPress: logout }]) },
   ];
 
