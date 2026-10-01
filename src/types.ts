@@ -31,6 +31,8 @@ export interface Delivery {
   restaurantAddress: string | null;
   restaurantLat: number | null;
   restaurantLng: number | null;
+  /** Real number, no masking vendor — same caveat as the rider's own phone shown to the customer. Null until the backend ships it (see reference-backend-dev-tools / project-rider-app-status). */
+  customerPhone: string | null;
   items: DeliveryItem[];
 }
 

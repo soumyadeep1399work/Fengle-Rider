@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts } from '../theme';
 import { useDelivery } from '../context/DeliveryContext';
@@ -9,7 +9,7 @@ import { paymentLabel } from '../utils/deliveryFormat';
 import { errorMessage } from '../utils/actions';
 import { openMapsDirections } from '../utils/navigate';
 import Button from '../components/Button';
-import CodSheet from '../components/CodSheet';
+import DeliverySheet from '../components/DeliverySheet';
 import { BackIcon } from '../components/Icons';
 
 interface Stage {
@@ -43,7 +43,7 @@ function stageFor(d: Delivery): Stage {
     locationAddress: d.deliveryAddress,
     lat: d.deliveryLat,
     lng: d.deliveryLng,
-    primaryLabel: d.status === 'picked_up' ? 'Mark On the Way' : d.paymentMethod === 'cod' ? 'Confirm delivery' : 'Mark Delivered',
+    primaryLabel: d.status === 'picked_up' ? 'Mark On the Way' : 'Confirm delivery',
   };
 }
 
@@ -51,9 +51,16 @@ export default function AssignmentScreen({ delivery }: { delivery: Delivery }) {
   const { closeAssignmentView, markPickedUp, markOnTheWay, markDelivered } = useDelivery();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [codOpen, setCodOpen] = useState(false);
+  const [deliverOpen, setDeliverOpen] = useState(false);
 
   const stage = stageFor(delivery);
+  // Only on the "to customer" leg — the customer's phone has no reason to
+  // exist on the "to restaurant" one, and the backend doesn't send it there.
+  const canCallCustomer = delivery.status !== 'accepted' && !!delivery.customerPhone;
+
+  function callCustomer() {
+    if (delivery.customerPhone) Linking.openURL(`tel:${delivery.customerPhone}`).catch(() => {});
+  }
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -70,67 +77,75 @@ export default function AssignmentScreen({ delivery }: { delivery: Delivery }) {
   function onPrimaryAction() {
     if (delivery.status === 'accepted') return run(() => markPickedUp(delivery.id));
     if (delivery.status === 'picked_up') return run(() => markOnTheWay(delivery.id));
-    if (delivery.paymentMethod === 'cod') return setCodOpen(true);
-    return run(() => markDelivered(delivery.id));
+    // Delivery always goes through the sheet: it collects the customer's code (and the COD cash confirmation).
+    return setDeliverOpen(true);
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Pressable onPress={closeAssignmentView} style={styles.backBtn}>
-          <BackIcon />
-        </Pressable>
-        <Text style={styles.headerTitle}>Order #{delivery.id}</Text>
-      </View>
-      <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
-        <View style={styles.stageChip}>
-          <Text style={styles.stageChipText}>{stage.stageLabel}</Text>
+    <View style={styles.flex}>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.header}>
+          <Pressable onPress={closeAssignmentView} style={styles.backBtn}>
+            <BackIcon />
+          </Pressable>
+          <Text style={styles.headerTitle}>Order #{delivery.id}</Text>
         </View>
-        {delivery.isClubbed && <Text style={styles.club}>Clubbed pickup — {delivery.categoriesLabel}, one kitchen</Text>}
-
-        <View style={styles.locationCard}>
-          <Text style={styles.locationLabel}>{stage.locationLabel}</Text>
-          {stage.locationName && <Text style={styles.locationName}>{stage.locationName}</Text>}
-          <Text style={styles.locationAddress}>
-            {stage.locationAddress ?? (stage.locationLabel === 'Pick up from' ? "Kitchen address isn't available yet — check with support if you can't find it." : '')}
-          </Text>
-        </View>
-
-        <Text style={styles.sectionLabel}>Items</Text>
-        {delivery.items.map((it) => (
-          <View key={it.itemId} style={styles.itemRow}>
-            <Text style={styles.itemName}>{it.name}</Text>
-            <Text style={styles.itemQty}>× {it.quantity}</Text>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+          <View style={styles.stageChip}>
+            <Text style={styles.stageChipText}>{stage.stageLabel}</Text>
           </View>
-        ))}
-        <View style={styles.paymentRow}>
-          <Text style={styles.paymentLabel}>Payment</Text>
-          <Text style={styles.paymentValue}>
-            {paymentLabel(delivery.paymentMethod)} · {formatMoney(delivery.grandTotal)}
-          </Text>
-        </View>
+          {delivery.isClubbed && <Text style={styles.club}>Clubbed pickup — {delivery.categoriesLabel}, one kitchen</Text>}
 
-        {!!error && <Text style={styles.error}>{error}</Text>}
-      </ScrollView>
-      <View style={styles.footer}>
-        <Button
-          label="Navigate"
-          variant="outline"
-          color={colors.primaryMid}
-          height={48}
-          disabled={stage.lat == null && !stage.locationAddress}
-          onPress={() => openMapsDirections({ lat: stage.lat, lng: stage.lng, address: stage.locationAddress })}
-        />
-        <Button label={stage.primaryLabel} height={50} loading={busy} onPress={onPrimaryAction} />
-      </View>
-      {codOpen && (
-        <CodSheet
-          amount={delivery.grandTotal}
-          onClose={() => setCodOpen(false)}
-          onConfirm={() => markDelivered(delivery.id, delivery.grandTotal)}
+          <View style={styles.locationCard}>
+            <Text style={styles.locationLabel}>{stage.locationLabel}</Text>
+            {stage.locationName && <Text style={styles.locationName}>{stage.locationName}</Text>}
+            <Text style={styles.locationAddress}>
+              {stage.locationAddress ?? (stage.locationLabel === 'Pick up from' ? "Kitchen address isn't available yet — check with support if you can't find it." : '')}
+            </Text>
+          </View>
+
+          <Text style={styles.sectionLabel}>Items</Text>
+          {delivery.items.map((it) => (
+            <View key={it.itemId} style={styles.itemRow}>
+              <Text style={styles.itemName}>{it.name}</Text>
+              <Text style={styles.itemQty}>× {it.quantity}</Text>
+            </View>
+          ))}
+          <View style={styles.paymentRow}>
+            <Text style={styles.paymentLabel}>Payment</Text>
+            <Text style={styles.paymentValue}>
+              {paymentLabel(delivery.paymentMethod)} · {formatMoney(delivery.grandTotal)}
+            </Text>
+          </View>
+
+          {!!error && <Text style={styles.error}>{error}</Text>}
+        </ScrollView>
+        <View style={styles.footer}>
+          <View style={styles.footerRow}>
+            <Button
+              label="Navigate"
+              variant="outline"
+              color={colors.primaryMid}
+              height={48}
+              disabled={stage.lat == null && !stage.locationAddress}
+              onPress={() => openMapsDirections({ lat: stage.lat, lng: stage.lng, address: stage.locationAddress })}
+              style={canCallCustomer ? styles.flex : undefined}
+            />
+            {canCallCustomer && (
+              <Button label="Call customer" variant="outline" color={colors.veg} height={48} onPress={callCustomer} style={styles.flex} />
+            )}
+          </View>
+          <Button label={stage.primaryLabel} height={50} loading={busy} onPress={onPrimaryAction} />
+        </View>
+      </SafeAreaView>
+      {deliverOpen && (
+        <DeliverySheet
+          codAmount={delivery.paymentMethod === 'cod' ? delivery.grandTotal : undefined}
+          onClose={() => setDeliverOpen(false)}
+          onConfirm={(code) => markDelivered(delivery.id, code, delivery.paymentMethod === 'cod' ? delivery.grandTotal : undefined)}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -157,4 +172,5 @@ const styles = StyleSheet.create({
   paymentValue: { fontFamily: fonts.bodyExtraBold, fontSize: 13.5, color: colors.ink },
   error: { marginTop: 14, fontFamily: fonts.bodyBold, fontSize: 12.5, color: '#C0524A' },
   footer: { flexDirection: 'column', gap: 10, padding: 14, paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: colors.borderAlt, backgroundColor: colors.surface },
+  footerRow: { flexDirection: 'row', gap: 10 },
 });

@@ -35,6 +35,7 @@ function mapDelivery(o: any): Delivery {
     restaurantAddress: o.restaurant_address ?? null,
     restaurantLat: o.restaurant_lat != null ? num(o.restaurant_lat) : null,
     restaurantLng: o.restaurant_lng != null ? num(o.restaurant_lng) : null,
+    customerPhone: o.customer_phone ?? null,
     items,
   };
 }
@@ -53,10 +54,16 @@ export function markOnTheWay(id: number) {
   return apiFetch<{ message: string }>(`/orders/${id}/on-the-way`, { method: 'POST', body: {} });
 }
 
-/** `codAmountCollected` is required and must exactly equal grandTotal for a COD order. */
-export function markDelivered(id: number, codAmountCollected?: number) {
+/**
+ * `deliveryOtp` is the code the customer reads out at drop-off (never sent to the rider).
+ * `codAmountCollected` is required and must exactly equal grandTotal for a COD order.
+ */
+export function markDelivered(id: number, deliveryOtp: string, codAmountCollected?: number) {
   return apiFetch<{ message: string }>(`/orders/${id}/delivered`, {
     method: 'POST',
-    body: codAmountCollected != null ? { cod_amount_collected: codAmountCollected } : {},
+    body: {
+      delivery_otp: deliveryOtp,
+      ...(codAmountCollected != null ? { cod_amount_collected: codAmountCollected } : {}),
+    },
   });
 }

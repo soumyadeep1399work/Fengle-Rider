@@ -34,7 +34,7 @@ interface DeliveryContextValue {
   refresh: () => Promise<void>;
   markPickedUp: (id: number) => Promise<void>;
   markOnTheWay: (id: number) => Promise<void>;
-  markDelivered: (id: number, codAmountCollected?: number) => Promise<void>;
+  markDelivered: (id: number, deliveryOtp: string, codAmountCollected?: number) => Promise<void>;
 }
 
 const DeliveryContext = createContext<DeliveryContextValue | undefined>(undefined);
@@ -173,8 +173,8 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   );
 
   const markDelivered = useCallback(
-    async (id: number, codAmountCollected?: number) => {
-      await apiMarkDelivered(id, codAmountCollected);
+    async (id: number, deliveryOtp: string, codAmountCollected?: number) => {
+      await apiMarkDelivered(id, deliveryOtp, codAmountCollected);
       setAssignmentViewOpen(false);
       await refresh();
     },
