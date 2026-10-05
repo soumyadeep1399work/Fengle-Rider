@@ -11,6 +11,8 @@ function mapProfile(r: any): RiderProfile {
     status: r.status,
     walletBalance: Number(r.wallet_balance ?? 0),
     agreementRequired: Boolean(r.agreementRequired),
+    verificationStatus: r.verificationStatus ?? 'approved',
+    verificationDeniedReason: r.verificationDeniedReason ?? null,
   };
 }
 

@@ -50,6 +50,10 @@ export interface RiderProfile {
   walletBalance: number;
   /** Undefined until the backend ships this field — see fails-open note in RiderProfileContext. */
   agreementRequired: boolean;
+  /** Admin's review of the selfie: only 'approved' riders can use the app. Treated as approved if the backend doesn't send it. */
+  verificationStatus: 'pending' | 'approved' | 'denied';
+  /** Why the photo was denied (shown on the agreement screen). */
+  verificationDeniedReason: string | null;
 }
 
 export interface WalletLedgerEntry {

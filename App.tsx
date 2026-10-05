@@ -23,6 +23,7 @@ import BottomNav, { Tab } from './src/components/BottomNav';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingProfileScreen from './src/screens/OnboardingProfileScreen';
 import AgreementScreen from './src/screens/AgreementScreen';
+import VerificationPendingScreen from './src/screens/VerificationPendingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import EarningsScreen from './src/screens/EarningsScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
@@ -113,7 +114,7 @@ function Shell() {
 }
 
 function ProfileGate() {
-  const { loading, needsOnboarding, needsAgreement, refresh } = useRiderProfile();
+  const { loading, profile, needsOnboarding, needsAgreement, needsReview, refresh } = useRiderProfile();
   if (loading) return null;
   if (needsOnboarding) {
     return (
@@ -129,7 +130,16 @@ function ProfileGate() {
     return (
       <View style={styles.root}>
         <StatusBar style="dark" />
-        <AgreementScreen onAccepted={refresh} />
+        <AgreementScreen deniedReason={profile?.verificationStatus === 'denied' ? profile.verificationDeniedReason : null} onAccepted={refresh} />
+      </View>
+    );
+  }
+  // Selfie submitted, waiting for an admin to approve it — nothing else works until then.
+  if (needsReview) {
+    return (
+      <View style={styles.root}>
+        <StatusBar style="dark" />
+        <VerificationPendingScreen onCheck={refresh} />
       </View>
     );
   }

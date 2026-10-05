@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { fetchMyProfile, ProfileUpdate, updateMyProfile } from '../api/riders';
+import { setVerificationHandler } from '../api/client';
 import { RiderProfile } from '../types';
 
 interface RiderProfileContextValue {
@@ -9,6 +10,8 @@ interface RiderProfileContextValue {
   needsOnboarding: boolean;
   /** False (fails open) until the backend ships `agreementRequired` on GET /riders/me. */
   needsAgreement: boolean;
+  /** Selfie submitted, waiting for an admin to approve it. */
+  needsReview: boolean;
   refresh: () => Promise<void>;
   update: (patch: ProfileUpdate) => Promise<void>;
 }
@@ -32,6 +35,14 @@ export function RiderProfileProvider({ children }: { children: React.ReactNode }
     refresh();
   }, [refresh]);
 
+  // Any request refused with verification_required (e.g. an admin denies mid-session) re-reads the profile.
+  useEffect(() => {
+    setVerificationHandler(() => {
+      refresh().catch(() => {});
+    });
+    return () => setVerificationHandler(null);
+  }, [refresh]);
+
   const update = useCallback(async (patch: ProfileUpdate) => {
     const p = await updateMyProfile(patch);
     setProfile(p);
@@ -42,6 +53,7 @@ export function RiderProfileProvider({ children }: { children: React.ReactNode }
     needsOnboarding: !loading && profile != null && !profile.vehicleType,
     // Checked after onboarding, so a rider with no vehicle set never sees this first.
     needsAgreement: !loading && profile != null && !!profile.vehicleType && profile.agreementRequired,
+    needsReview: !loading && profile != null && !!profile.vehicleType && !profile.agreementRequired && profile.verificationStatus === 'pending',
     refresh, update,
   };
 
